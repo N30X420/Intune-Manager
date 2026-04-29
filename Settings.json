@@ -1,0 +1,5 @@
+﻿{
+    "LogEnabled":  true,
+    "LogPath":  "C:\\Users\\Vincent\\Documents\\Github\\Intune-Manager\\Logs\\IntuneManagement.log",
+    "DeviceLimit":  100
+}

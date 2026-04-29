@@ -64,3 +64,51 @@
 2026-04-29 14:15:13 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using Entra device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
 2026-04-29 14:15:16 [INFO] Found 2 BitLocker key summary record(s) using device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
 2026-04-29 14:15:17 [INFO] Successfully retrieved 2 BitLocker key(s) for device 'DESKTOP-U9T4NH2'.
+29-04-2026 14:43:35 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+29-04-2026 14:43:37 [INFO] Intune Management Console started.
+29-04-2026 14:43:59 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 14:57:36 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 14:57:38 [INFO] Intune Management Console started.
+29-04-2026 14:57:50 [INFO] Added module path 'C:\Users\Vincent\Documents\PowerShell\Modules' for Microsoft Graph discovery.
+29-04-2026 14:57:51 [INFO] Loaded module 'Microsoft.Graph.Authentication'.
+29-04-2026 14:57:53 [INFO] Loaded module 'Microsoft.Graph.DeviceManagement'.
+29-04-2026 14:57:53 [INFO] Connecting to Microsoft Graph using auth mode 'Interactive'.
+29-04-2026 14:57:54 [INFO] Connected to tenant '33cf9661-bb7c-4ef7-b9b7-bf22fddfd072' using 'Delegated' authentication.
+29-04-2026 14:57:59 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 14:57:59 [INFO] Retrieving Intune managed devices. SearchText=''; Top=100.
+29-04-2026 14:58:00 [INFO] Retrieved 11 Intune managed device(s).
+29-04-2026 14:58:12 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+29-04-2026 14:58:12 [INFO] Retrieving local admin password for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+29-04-2026 14:58:14 [INFO] Successfully retrieved local admin password for device 'DESKTOP-U9T4NH2'.
+29-04-2026 14:58:18 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+29-04-2026 14:58:18 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using Entra device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+29-04-2026 14:58:21 [INFO] Found 2 BitLocker key summary record(s) using device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+29-04-2026 14:58:23 [INFO] Successfully retrieved 2 BitLocker key(s) for device 'DESKTOP-U9T4NH2'.
+29-04-2026 14:59:25 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 14:59:27 [INFO] Intune Management Console started.
+29-04-2026 15:00:00 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 15:00:01 [INFO] Intune Management Console started.
+29-04-2026 15:00:10 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 15:00:11 [ERROR] No active Microsoft Graph connection. Exception=No active Microsoft Graph context found.
+29-04-2026 15:00:11 [ERROR] Failed to retrieve Intune managed devices. Exception=Connect to Microsoft Graph before running Intune actions.
+29-04-2026 15:00:11 [ERROR] Failed to retrieve managed devices. Exception=Connect to Microsoft Graph before running Intune actions.
+29-04-2026 16:56:24 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 16:56:25 [INFO] Intune Management Console started.
+29-04-2026 16:56:27 [INFO] Added module path 'C:\Users\Vincent\Documents\PowerShell\Modules' for Microsoft Graph discovery.
+29-04-2026 16:56:28 [INFO] Loaded module 'Microsoft.Graph.Authentication'.
+29-04-2026 16:56:30 [INFO] Loaded module 'Microsoft.Graph.DeviceManagement'.
+29-04-2026 16:56:30 [INFO] Connecting to Microsoft Graph using auth mode 'Interactive'.
+29-04-2026 16:56:32 [INFO] Connected to tenant '33cf9661-bb7c-4ef7-b9b7-bf22fddfd072' using 'Delegated' authentication.
+29-04-2026 16:56:34 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 16:56:34 [INFO] Retrieving Intune managed devices. SearchText=''; Top=100.
+29-04-2026 16:56:35 [INFO] Retrieved 11 Intune managed device(s).
+29-04-2026 16:56:55 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+29-04-2026 16:56:55 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using Entra device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+29-04-2026 16:56:58 [INFO] Found 2 BitLocker key summary record(s) using device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+29-04-2026 16:56:59 [INFO] Successfully retrieved 2 BitLocker key(s) for device 'DESKTOP-U9T4NH2'.
+29-04-2026 16:57:03 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 16:57:03 [INFO] Retrieving Intune managed devices. SearchText=''; Top=100.
+29-04-2026 16:57:04 [INFO] Retrieved 11 Intune managed device(s).
+29-04-2026 16:57:05 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=100.
+29-04-2026 16:57:05 [INFO] Retrieving Intune managed devices. SearchText=''; Top=100.
+29-04-2026 16:57:05 [INFO] Retrieved 11 Intune managed device(s).

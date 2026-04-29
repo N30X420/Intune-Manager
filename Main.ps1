@@ -11,10 +11,209 @@ if ([string]::IsNullOrWhiteSpace($LogPath)) {
     $LogPath = Join-Path $scriptRoot "Logs\IntuneManagement.log"
 }
 
+$script:AppVersion = "v1.0"
+$script:GitHubRepoUrl = "https://github.com/N30X420/Intune-Manager"
+$script:GitHubTagsApiUrl = "https://api.github.com/repos/N30X420/Intune-Manager/tags"
+$script:SettingsPath = Join-Path $scriptRoot "Settings.json"
+$script:AppCulture = [System.Globalization.CultureInfo]::GetCultureInfo("en-GB")
+$deviceGroup.Location = New-Object System.Drawing.Point(12, 110)
+$deviceGroup.Size = New-Object System.Drawing.Size(1140, 466)
+[System.Threading.Thread]::CurrentThread.CurrentUICulture = $script:AppCulture
+
+if ([System.Globalization.CultureInfo]::DefaultThreadCurrentCulture -ne $null) {
+    [System.Globalization.CultureInfo]::DefaultThreadCurrentCulture = $script:AppCulture
+    [System.Globalization.CultureInfo]::DefaultThreadCurrentUICulture = $script:AppCulture
+}
+
+function Get-DefaultUiSettings {
+    return [ordered]@{
+        LogEnabled            = $LogEnabled
+        LogPath               = $LogPath
+        DeviceLimit           = $DeviceLimit
+        AuthMode              = "Interactive"
+        TenantId              = ""
+        ClientId              = ""
+        ClientSecretPlainText = ""
+        CertificateThumbprint = ""
+        CertificateName       = ""
+    }
+}
+
+function Load-UiSettings {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Defaults
+    )
+
+    $settings = [ordered]@{
+        LogEnabled            = [bool]$Defaults.LogEnabled
+        LogPath               = [string]$Defaults.LogPath
+        DeviceLimit           = [int]$Defaults.DeviceLimit
+        AuthMode              = [string]$Defaults.AuthMode
+        TenantId              = [string]$Defaults.TenantId
+        ClientId              = [string]$Defaults.ClientId
+        ClientSecretPlainText = [string]$Defaults.ClientSecretPlainText
+        CertificateThumbprint = [string]$Defaults.CertificateThumbprint
+        CertificateName       = [string]$Defaults.CertificateName
+    }
+
+    if (Test-Path -Path $script:SettingsPath) {
+        try {
+            $raw = Get-Content -Path $script:SettingsPath -Raw -ErrorAction Stop
+            if (-not [string]::IsNullOrWhiteSpace($raw)) {
+                $loaded = $raw | ConvertFrom-Json -ErrorAction Stop
+
+                if ($loaded.PSObject.Properties.Name -contains "LogEnabled") {
+                    $settings.LogEnabled = [bool]$loaded.LogEnabled
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "LogPath" -and -not [string]::IsNullOrWhiteSpace([string]$loaded.LogPath)) {
+                    $settings.LogPath = [string]$loaded.LogPath
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "DeviceLimit") {
+                    $settings.DeviceLimit = [int]$loaded.DeviceLimit
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "AuthMode" -and -not [string]::IsNullOrWhiteSpace([string]$loaded.AuthMode)) {
+                    $settings.AuthMode = [string]$loaded.AuthMode
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "TenantId") {
+                    $settings.TenantId = [string]$loaded.TenantId
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "ClientId") {
+                    $settings.ClientId = [string]$loaded.ClientId
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "ClientSecretPlainText") {
+                    $settings.ClientSecretPlainText = [string]$loaded.ClientSecretPlainText
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "CertificateThumbprint") {
+                    $settings.CertificateThumbprint = [string]$loaded.CertificateThumbprint
+                }
+
+                if ($loaded.PSObject.Properties.Name -contains "CertificateName") {
+                    $settings.CertificateName = [string]$loaded.CertificateName
+                }
+            }
+        }
+        catch {
+            Write-Warning "Unable to read saved settings from '$($script:SettingsPath)'. Using defaults. $($_.Exception.Message)"
+        }
+    }
+
+    if ($PSBoundParameters.ContainsKey("LogEnabled")) {
+        $settings.LogEnabled = [bool]$LogEnabled
+    }
+
+    if ($PSBoundParameters.ContainsKey("LogPath") -and -not [string]::IsNullOrWhiteSpace($LogPath)) {
+        $settings.LogPath = [string]$LogPath
+    }
+
+    if ($PSBoundParameters.ContainsKey("DeviceLimit")) {
+        $settings.DeviceLimit = [int]$DeviceLimit
+    }
+
+    if ($settings.DeviceLimit -lt 0) {
+        $settings.DeviceLimit = 0
+    }
+
+    $validAuthModes = @("Interactive", "AppOnlySecret", "AppOnlyCertificate")
+    if ($validAuthModes -notcontains $settings.AuthMode) {
+        $settings.AuthMode = "Interactive"
+    }
+
+    return $settings
+}
+
+function Save-UiSettings {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Settings
+    )
+
+    try {
+        $payload = [ordered]@{
+            LogEnabled            = [bool]$Settings.LogEnabled
+            LogPath               = [string]$Settings.LogPath
+            DeviceLimit           = [int]$Settings.DeviceLimit
+            AuthMode              = [string]$Settings.AuthMode
+            TenantId              = [string]$Settings.TenantId
+            ClientId              = [string]$Settings.ClientId
+            ClientSecretPlainText = [string]$Settings.ClientSecretPlainText
+            CertificateThumbprint = [string]$Settings.CertificateThumbprint
+            CertificateName       = [string]$Settings.CertificateName
+        }
+
+        $payload | ConvertTo-Json -Depth 4 | Set-Content -Path $script:SettingsPath -Encoding UTF8 -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "Unable to save settings to '$($script:SettingsPath)'. $($_.Exception.Message)"
+    }
+}
+
+function Convert-TagToVersion {
+    param([string]$Tag)
+
+    if ([string]::IsNullOrWhiteSpace($Tag)) {
+        return $null
+    }
+
+    $normalized = $Tag.Trim()
+    if ($normalized.StartsWith("v", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $normalized = $normalized.Substring(1)
+    }
+
+    if ($normalized.Contains("-")) {
+        $normalized = $normalized.Split("-")[0]
+    }
+
+    if ($normalized -notmatch "^\d+(\.\d+){0,3}$") {
+        return $null
+    }
+
+    try {
+        return [version]$normalized
+    }
+    catch {
+        return $null
+    }
+}
+
+function Get-LatestGitHubTag {
+    try {
+        $headers = @{ "User-Agent" = "IntuneManager/$($script:AppVersion)" }
+        $tags = Invoke-RestMethod -Method GET -Uri $script:GitHubTagsApiUrl -Headers $headers -ErrorAction Stop
+
+        if (-not $tags) {
+            return $null
+        }
+
+        foreach ($tag in @($tags)) {
+            if ($tag.name) {
+                return [string]$tag.name
+            }
+        }
+
+        return $null
+    }
+    catch {
+        return $null
+    }
+}
+
 . (Join-Path $scriptRoot "Functions.ps1")
 . (Join-Path $scriptRoot "Auth.ps1")
 
-Set-IntuneAppConfiguration -LogEnabled $LogEnabled -LogPath $LogPath -DefaultDeviceLimit $DeviceLimit
+$script:UiSettings = Load-UiSettings -Defaults (Get-DefaultUiSettings)
+
+Set-IntuneAppConfiguration `
+    -LogEnabled $script:UiSettings.LogEnabled `
+    -LogPath $script:UiSettings.LogPath `
+    -DefaultDeviceLimit $script:UiSettings.DeviceLimit
 
 try {
     Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
@@ -28,6 +227,48 @@ catch {
 [System.Windows.Forms.Application]::EnableVisualStyles()
 [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 
+function Show-SplashScreen {
+    $splash = New-Object System.Windows.Forms.Form
+    $splash.FormBorderStyle = "None"
+    $splash.StartPosition = "CenterScreen"
+    $splash.Size = New-Object System.Drawing.Size(520, 280)
+    $splash.BackColor = [System.Drawing.Color]::White
+    $splash.TopMost = $true
+
+    $title = New-Object System.Windows.Forms.Label
+    $title.Text = "Intune Management Console"
+    $title.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
+    $title.AutoSize = $true
+    $title.Location = New-Object System.Drawing.Point(30, 40)
+    $splash.Controls.Add($title)
+
+    $subtitle = New-Object System.Windows.Forms.Label
+    $subtitle.Text = "Splash content placeholder - customize this screen as needed."
+    $subtitle.Font = New-Object System.Drawing.Font("Segoe UI", 10)
+    $subtitle.AutoSize = $true
+    $subtitle.Location = New-Object System.Drawing.Point(32, 95)
+    $splash.Controls.Add($subtitle)
+
+    $version = New-Object System.Windows.Forms.Label
+    $version.Text = "Version $($script:AppVersion)"
+    $version.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+    $version.AutoSize = $true
+    $version.Location = New-Object System.Drawing.Point(32, 130)
+    $splash.Controls.Add($version)
+
+    $timer = New-Object System.Windows.Forms.Timer
+    $timer.Interval = 1400
+    $timer.Add_Tick({
+        $timer.Stop()
+        $splash.Close()
+    })
+
+    $splash.Add_Shown({ $timer.Start() })
+    [void]$splash.ShowDialog()
+}
+
+Show-SplashScreen
+
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Intune Management Console"
 $form.StartPosition = "CenterScreen"
@@ -38,134 +279,43 @@ $font = New-Object System.Drawing.Font("Segoe UI", 9)
 $form.Font = $font
 
 $authGroup = New-Object System.Windows.Forms.GroupBox
-$authGroup.Text = "Authentication"
+$authGroup.Text = "Connection"
 $authGroup.Location = New-Object System.Drawing.Point(12, 12)
-$authGroup.Size = New-Object System.Drawing.Size(1140, 150)
+$authGroup.Size = New-Object System.Drawing.Size(1140, 90)
 $authGroup.Anchor = "Top,Left,Right"
 $form.Controls.Add($authGroup)
 
-$lblAuthMode = New-Object System.Windows.Forms.Label
-$lblAuthMode.Text = "Mode"
-$lblAuthMode.Location = New-Object System.Drawing.Point(16, 31)
-$lblAuthMode.Size = New-Object System.Drawing.Size(90, 22)
-$authGroup.Controls.Add($lblAuthMode)
-
-$cmbAuthMode = New-Object System.Windows.Forms.ComboBox
-$cmbAuthMode.DropDownStyle = "DropDownList"
-$cmbAuthMode.Items.AddRange(@("Interactive", "AppOnlySecret", "AppOnlyCertificate"))
-$cmbAuthMode.SelectedIndex = 0
-$cmbAuthMode.Location = New-Object System.Drawing.Point(112, 28)
-$cmbAuthMode.Size = New-Object System.Drawing.Size(170, 24)
-$authGroup.Controls.Add($cmbAuthMode)
-
-$lblTenantId = New-Object System.Windows.Forms.Label
-$lblTenantId.Text = "Tenant ID"
-$lblTenantId.Location = New-Object System.Drawing.Point(300, 31)
-$lblTenantId.Size = New-Object System.Drawing.Size(80, 22)
-$authGroup.Controls.Add($lblTenantId)
-
-$txtTenantId = New-Object System.Windows.Forms.TextBox
-$txtTenantId.Location = New-Object System.Drawing.Point(390, 28)
-$txtTenantId.Size = New-Object System.Drawing.Size(290, 24)
-$txtTenantId.Anchor = "Top,Left"
-$authGroup.Controls.Add($txtTenantId)
-
-$lblClientId = New-Object System.Windows.Forms.Label
-$lblClientId.Text = "Client ID"
-$lblClientId.Location = New-Object System.Drawing.Point(700, 31)
-$lblClientId.Size = New-Object System.Drawing.Size(80, 22)
-$authGroup.Controls.Add($lblClientId)
-
-$txtClientId = New-Object System.Windows.Forms.TextBox
-$txtClientId.Location = New-Object System.Drawing.Point(790, 28)
-$txtClientId.Size = New-Object System.Drawing.Size(210, 24)
-$authGroup.Controls.Add($txtClientId)
-
 $btnConnect = New-Object System.Windows.Forms.Button
 $btnConnect.Text = "Connect"
-$btnConnect.Location = New-Object System.Drawing.Point(1020, 26)
+$btnConnect.Location = New-Object System.Drawing.Point(920, 26)
 $btnConnect.Size = New-Object System.Drawing.Size(100, 28)
 $btnConnect.Anchor = "Top,Right"
 $authGroup.Controls.Add($btnConnect)
 
-$lblSecret = New-Object System.Windows.Forms.Label
-$lblSecret.Text = "Client Secret"
-$lblSecret.Location = New-Object System.Drawing.Point(16, 70)
-$lblSecret.Size = New-Object System.Drawing.Size(90, 22)
-$authGroup.Controls.Add($lblSecret)
+$btnAuthSettings = New-Object System.Windows.Forms.Button
+$btnAuthSettings.Text = "Authentication"
+$btnAuthSettings.Location = New-Object System.Drawing.Point(700, 26)
+$btnAuthSettings.Size = New-Object System.Drawing.Size(110, 28)
+$btnAuthSettings.Anchor = "Top,Right"
+$authGroup.Controls.Add($btnAuthSettings)
 
-$txtClientSecret = New-Object System.Windows.Forms.TextBox
-$txtClientSecret.Location = New-Object System.Drawing.Point(112, 67)
-$txtClientSecret.Size = New-Object System.Drawing.Size(300, 24)
-$txtClientSecret.UseSystemPasswordChar = $true
-$authGroup.Controls.Add($txtClientSecret)
-
-$lblCertThumb = New-Object System.Windows.Forms.Label
-$lblCertThumb.Text = "Cert Thumbprint"
-$lblCertThumb.Location = New-Object System.Drawing.Point(430, 70)
-$lblCertThumb.Size = New-Object System.Drawing.Size(110, 22)
-$authGroup.Controls.Add($lblCertThumb)
-
-$txtCertThumb = New-Object System.Windows.Forms.TextBox
-$txtCertThumb.Location = New-Object System.Drawing.Point(545, 67)
-$txtCertThumb.Size = New-Object System.Drawing.Size(250, 24)
-$authGroup.Controls.Add($txtCertThumb)
-
-$lblCertName = New-Object System.Windows.Forms.Label
-$lblCertName.Text = "Cert Subject"
-$lblCertName.Location = New-Object System.Drawing.Point(815, 70)
-$lblCertName.Size = New-Object System.Drawing.Size(90, 22)
-$authGroup.Controls.Add($lblCertName)
-
-$txtCertName = New-Object System.Windows.Forms.TextBox
-$txtCertName.Location = New-Object System.Drawing.Point(910, 67)
-$txtCertName.Size = New-Object System.Drawing.Size(210, 24)
-$authGroup.Controls.Add($txtCertName)
+$btnSettings = New-Object System.Windows.Forms.Button
+$btnSettings.Text = "Settings"
+$btnSettings.Location = New-Object System.Drawing.Point(810, 26)
+$btnSettings.Size = New-Object System.Drawing.Size(100, 28)
+$btnSettings.Anchor = "Top,Right"
+$authGroup.Controls.Add($btnSettings)
 
 $lblStatus = New-Object System.Windows.Forms.Label
 $lblStatus.Text = "Not connected"
-$lblStatus.Location = New-Object System.Drawing.Point(16, 112)
-$lblStatus.Size = New-Object System.Drawing.Size(760, 22)
+$lblStatus.Location = New-Object System.Drawing.Point(16, 32)
+$lblStatus.Size = New-Object System.Drawing.Size(670, 22)
 $authGroup.Controls.Add($lblStatus)
-
-$logGroup = New-Object System.Windows.Forms.GroupBox
-$logGroup.Text = "Logging"
-$logGroup.Location = New-Object System.Drawing.Point(12, 170)
-$logGroup.Size = New-Object System.Drawing.Size(1140, 68)
-$logGroup.Anchor = "Top,Left,Right"
-$form.Controls.Add($logGroup)
-
-$chkLogEnabled = New-Object System.Windows.Forms.CheckBox
-$chkLogEnabled.Text = "Enabled"
-$chkLogEnabled.Checked = $script:IntuneAppSettings.LogEnabled
-$chkLogEnabled.Location = New-Object System.Drawing.Point(16, 28)
-$chkLogEnabled.Size = New-Object System.Drawing.Size(90, 24)
-$logGroup.Controls.Add($chkLogEnabled)
-
-$lblLogPath = New-Object System.Windows.Forms.Label
-$lblLogPath.Text = "Log Path"
-$lblLogPath.Location = New-Object System.Drawing.Point(120, 30)
-$lblLogPath.Size = New-Object System.Drawing.Size(75, 22)
-$logGroup.Controls.Add($lblLogPath)
-
-$txtLogPath = New-Object System.Windows.Forms.TextBox
-$txtLogPath.Text = $script:IntuneAppSettings.LogPath
-$txtLogPath.Location = New-Object System.Drawing.Point(200, 27)
-$txtLogPath.Size = New-Object System.Drawing.Size(800, 24)
-$txtLogPath.Anchor = "Top,Left,Right"
-$logGroup.Controls.Add($txtLogPath)
-
-$btnApplyLog = New-Object System.Windows.Forms.Button
-$btnApplyLog.Text = "Apply"
-$btnApplyLog.Location = New-Object System.Drawing.Point(1020, 25)
-$btnApplyLog.Size = New-Object System.Drawing.Size(100, 28)
-$btnApplyLog.Anchor = "Top,Right"
-$logGroup.Controls.Add($btnApplyLog)
 
 $deviceGroup = New-Object System.Windows.Forms.GroupBox
 $deviceGroup.Text = "Managed Devices"
-$deviceGroup.Location = New-Object System.Drawing.Point(12, 246)
-$deviceGroup.Size = New-Object System.Drawing.Size(1140, 330)
+$deviceGroup.Location = New-Object System.Drawing.Point(12, 110)
+$deviceGroup.Size = New-Object System.Drawing.Size(1140, 466)
 $deviceGroup.Anchor = "Top,Bottom,Left,Right"
 $form.Controls.Add($deviceGroup)
 
@@ -180,29 +330,15 @@ $txtSearch.Location = New-Object System.Drawing.Point(75, 27)
 $txtSearch.Size = New-Object System.Drawing.Size(300, 24)
 $deviceGroup.Controls.Add($txtSearch)
 
-$lblLimit = New-Object System.Windows.Forms.Label
-$lblLimit.Text = "Limit"
-$lblLimit.Location = New-Object System.Drawing.Point(395, 30)
-$lblLimit.Size = New-Object System.Drawing.Size(40, 22)
-$deviceGroup.Controls.Add($lblLimit)
-
-$numLimit = New-Object System.Windows.Forms.NumericUpDown
-$numLimit.Location = New-Object System.Drawing.Point(440, 27)
-$numLimit.Size = New-Object System.Drawing.Size(80, 24)
-$numLimit.Minimum = 0
-$numLimit.Maximum = 10000
-$numLimit.Value = $script:IntuneAppSettings.DefaultDeviceLimit
-$deviceGroup.Controls.Add($numLimit)
-
 $btnRefresh = New-Object System.Windows.Forms.Button
 $btnRefresh.Text = "Refresh"
-$btnRefresh.Location = New-Object System.Drawing.Point(540, 25)
+$btnRefresh.Location = New-Object System.Drawing.Point(395, 25)
 $btnRefresh.Size = New-Object System.Drawing.Size(95, 28)
 $deviceGroup.Controls.Add($btnRefresh)
 
 $lblDeviceAction = New-Object System.Windows.Forms.Label
 $lblDeviceAction.Text = "Action"
-$lblDeviceAction.Location = New-Object System.Drawing.Point(650, 30)
+$lblDeviceAction.Location = New-Object System.Drawing.Point(510, 30)
 $lblDeviceAction.Size = New-Object System.Drawing.Size(50, 22)
 $deviceGroup.Controls.Add($lblDeviceAction)
 
@@ -219,13 +355,13 @@ $cmbDeviceAction.Items.AddRange(@(
     "Remote wipe"
 ))
 $cmbDeviceAction.SelectedIndex = 0
-$cmbDeviceAction.Location = New-Object System.Drawing.Point(705, 27)
+$cmbDeviceAction.Location = New-Object System.Drawing.Point(565, 27)
 $cmbDeviceAction.Size = New-Object System.Drawing.Size(255, 24)
 $deviceGroup.Controls.Add($cmbDeviceAction)
 
 $btnRunDeviceAction = New-Object System.Windows.Forms.Button
 $btnRunDeviceAction.Text = "Run"
-$btnRunDeviceAction.Location = New-Object System.Drawing.Point(975, 25)
+$btnRunDeviceAction.Location = New-Object System.Drawing.Point(835, 25)
 $btnRunDeviceAction.Size = New-Object System.Drawing.Size(95, 28)
 $deviceGroup.Controls.Add($btnRunDeviceAction)
 
@@ -259,10 +395,363 @@ $txtOutput.ScrollBars = "Vertical"
 $txtOutput.ReadOnly = $true
 $outputGroup.Controls.Add($txtOutput)
 
+$lblVersion = New-Object System.Windows.Forms.Label
+$lblVersion.Text = "Version $($script:AppVersion)"
+$lblVersion.AutoSize = $true
+$lblVersion.Location = New-Object System.Drawing.Point(990, 104)
+$lblVersion.Anchor = "Bottom,Right"
+$outputGroup.Controls.Add($lblVersion)
+
 function Add-OutputLine {
     param([string]$Message)
 
-    $txtOutput.AppendText(("[{0}] {1}{2}" -f (Get-Date -Format "HH:mm:ss"), $Message, [Environment]::NewLine))
+    $txtOutput.AppendText(("[{0}] {1}{2}" -f (Get-Date -Format "dd-MM-yyyy HH:mm:ss"), $Message, [Environment]::NewLine))
+}
+
+function Check-ForUpdates {
+    param([bool]$ShowWhenCurrent = $false)
+
+    $latestTag = Get-LatestGitHubTag
+    if ([string]::IsNullOrWhiteSpace($latestTag)) {
+        if ($ShowWhenCurrent) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "No GitHub tags were found yet.",
+                "Update Check",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Information
+            ) | Out-Null
+        }
+
+        return $false
+    }
+
+    $currentVersion = Convert-TagToVersion -Tag $script:AppVersion
+    $latestVersion = Convert-TagToVersion -Tag $latestTag
+
+    if ($currentVersion -and $latestVersion -and $latestVersion -gt $currentVersion) {
+        $message = "A newer version is available.`r`n`r`nCurrent: $($script:AppVersion)`r`nLatest:  $latestTag`r`n`r`nRepository:`r`n$($script:GitHubRepoUrl)"
+        Add-OutputLine "Update available: $latestTag"
+        [System.Windows.Forms.MessageBox]::Show(
+            $message,
+            "Update Available",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        ) | Out-Null
+
+        return $true
+    }
+
+    if ($ShowWhenCurrent) {
+        [System.Windows.Forms.MessageBox]::Show(
+            "You are running the latest version ($($script:AppVersion)).",
+            "Update Check",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        ) | Out-Null
+    }
+
+    return $false
+}
+
+function Apply-UiSettings {
+    try {
+        Set-IntuneAppConfiguration `
+            -LogEnabled $script:UiSettings.LogEnabled `
+            -LogPath $script:UiSettings.LogPath `
+            -DefaultDeviceLimit $script:UiSettings.DeviceLimit
+
+        Save-UiSettings -Settings $script:UiSettings
+        Add-OutputLine "Settings applied."
+    }
+    catch {
+        Show-AppError -Message "Failed to apply settings." -Exception $_
+    }
+}
+
+function Show-SettingsDialog {
+    $settingsForm = New-Object System.Windows.Forms.Form
+    $settingsForm.Text = "Settings"
+    $settingsForm.StartPosition = "CenterParent"
+    $settingsForm.Size = New-Object System.Drawing.Size(680, 280)
+    $settingsForm.FormBorderStyle = "FixedDialog"
+    $settingsForm.MaximizeBox = $false
+    $settingsForm.MinimizeBox = $false
+
+    $settingsFont = New-Object System.Drawing.Font("Segoe UI", 9)
+    $settingsForm.Font = $settingsFont
+
+    $chkSettingsLogEnabled = New-Object System.Windows.Forms.CheckBox
+    $chkSettingsLogEnabled.Text = "Enable Log"
+    $chkSettingsLogEnabled.Checked = $script:UiSettings.LogEnabled
+    $chkSettingsLogEnabled.Location = New-Object System.Drawing.Point(20, 20)
+    $chkSettingsLogEnabled.Size = New-Object System.Drawing.Size(120, 24)
+    $settingsForm.Controls.Add($chkSettingsLogEnabled)
+
+    $lblSettingsLogPath = New-Object System.Windows.Forms.Label
+    $lblSettingsLogPath.Text = "Log Path"
+    $lblSettingsLogPath.Location = New-Object System.Drawing.Point(20, 60)
+    $lblSettingsLogPath.Size = New-Object System.Drawing.Size(70, 22)
+    $settingsForm.Controls.Add($lblSettingsLogPath)
+
+    $txtSettingsLogPath = New-Object System.Windows.Forms.TextBox
+    $txtSettingsLogPath.Text = [string]$script:UiSettings.LogPath
+    $txtSettingsLogPath.Location = New-Object System.Drawing.Point(95, 57)
+    $txtSettingsLogPath.Size = New-Object System.Drawing.Size(460, 24)
+    $settingsForm.Controls.Add($txtSettingsLogPath)
+
+    $btnBrowseLogPath = New-Object System.Windows.Forms.Button
+    $btnBrowseLogPath.Text = "Browse"
+    $btnBrowseLogPath.Location = New-Object System.Drawing.Point(560, 55)
+    $btnBrowseLogPath.Size = New-Object System.Drawing.Size(85, 28)
+    $settingsForm.Controls.Add($btnBrowseLogPath)
+
+    $lblSettingsDeviceLimit = New-Object System.Windows.Forms.Label
+    $lblSettingsDeviceLimit.Text = "Device Limit"
+    $lblSettingsDeviceLimit.Location = New-Object System.Drawing.Point(20, 100)
+    $lblSettingsDeviceLimit.Size = New-Object System.Drawing.Size(80, 22)
+    $settingsForm.Controls.Add($lblSettingsDeviceLimit)
+
+    $numSettingsDeviceLimit = New-Object System.Windows.Forms.NumericUpDown
+    $numSettingsDeviceLimit.Location = New-Object System.Drawing.Point(95, 97)
+    $numSettingsDeviceLimit.Size = New-Object System.Drawing.Size(100, 24)
+    $numSettingsDeviceLimit.Minimum = 0
+    $numSettingsDeviceLimit.Maximum = 10000
+    $numSettingsDeviceLimit.Value = [decimal]([Math]::Min([Math]::Max([int]$script:UiSettings.DeviceLimit, 0), 10000))
+    $settingsForm.Controls.Add($numSettingsDeviceLimit)
+
+    $btnCheckUpdates = New-Object System.Windows.Forms.Button
+    $btnCheckUpdates.Text = "Check for updates"
+    $btnCheckUpdates.Location = New-Object System.Drawing.Point(20, 140)
+    $btnCheckUpdates.Size = New-Object System.Drawing.Size(150, 30)
+    $settingsForm.Controls.Add($btnCheckUpdates)
+
+    $btnSaveSettings = New-Object System.Windows.Forms.Button
+    $btnSaveSettings.Text = "Save"
+    $btnSaveSettings.Location = New-Object System.Drawing.Point(480, 185)
+    $btnSaveSettings.Size = New-Object System.Drawing.Size(80, 30)
+    $settingsForm.Controls.Add($btnSaveSettings)
+
+    $btnCancelSettings = New-Object System.Windows.Forms.Button
+    $btnCancelSettings.Text = "Cancel"
+    $btnCancelSettings.Location = New-Object System.Drawing.Point(565, 185)
+    $btnCancelSettings.Size = New-Object System.Drawing.Size(80, 30)
+    $settingsForm.Controls.Add($btnCancelSettings)
+
+    $btnBrowseLogPath.Add_Click({
+        $dialog = New-Object System.Windows.Forms.SaveFileDialog
+        $dialog.Title = "Select log file path"
+        $dialog.Filter = "Log files (*.log)|*.log|All files (*.*)|*.*"
+        $dialog.FileName = if ([string]::IsNullOrWhiteSpace($txtSettingsLogPath.Text)) { "IntuneManagement.log" } else { [IO.Path]::GetFileName($txtSettingsLogPath.Text) }
+
+        if (-not [string]::IsNullOrWhiteSpace($txtSettingsLogPath.Text)) {
+            try {
+                $existingDir = Split-Path -Path $txtSettingsLogPath.Text -Parent
+                if (-not [string]::IsNullOrWhiteSpace($existingDir) -and (Test-Path -Path $existingDir)) {
+                    $dialog.InitialDirectory = $existingDir
+                }
+            }
+            catch {
+                # Keep default initial directory.
+            }
+        }
+
+        if ($dialog.ShowDialog($settingsForm) -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtSettingsLogPath.Text = $dialog.FileName
+        }
+    })
+
+    $btnCheckUpdates.Add_Click({
+        try {
+            [void](Check-ForUpdates -ShowWhenCurrent $true)
+        }
+        catch {
+            Show-AppError -Message "Failed to check for updates." -Exception $_
+        }
+    })
+
+    $btnSaveSettings.Add_Click({
+        if ([string]::IsNullOrWhiteSpace($txtSettingsLogPath.Text)) {
+            [System.Windows.Forms.MessageBox]::Show(
+                "Log path cannot be empty.",
+                "Settings",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Warning
+            ) | Out-Null
+            return
+        }
+
+        $script:UiSettings.LogEnabled = $chkSettingsLogEnabled.Checked
+        $script:UiSettings.LogPath = $txtSettingsLogPath.Text.Trim()
+        $script:UiSettings.DeviceLimit = [int]$numSettingsDeviceLimit.Value
+
+        Apply-UiSettings
+        $settingsForm.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $settingsForm.Close()
+    })
+
+    $btnCancelSettings.Add_Click({
+        $settingsForm.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $settingsForm.Close()
+    })
+
+    [void]$settingsForm.ShowDialog($form)
+}
+
+function Get-AuthenticationSummaryText {
+    $mode = [string]$script:UiSettings.AuthMode
+    if ([string]::IsNullOrWhiteSpace($mode)) {
+        $mode = "Interactive"
+    }
+
+    $summary = "Not connected (Auth mode: $mode"
+
+    if (-not [string]::IsNullOrWhiteSpace([string]$script:UiSettings.TenantId)) {
+        $summary += "; Tenant: $($script:UiSettings.TenantId)"
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace([string]$script:UiSettings.ClientId)) {
+        $summary += "; Client: $($script:UiSettings.ClientId)"
+    }
+
+    $summary += ")"
+    return $summary
+}
+
+function Show-AuthenticationDialog {
+    $authForm = New-Object System.Windows.Forms.Form
+    $authForm.Text = "Authentication"
+    $authForm.StartPosition = "CenterParent"
+    $authForm.Size = New-Object System.Drawing.Size(730, 280)
+    $authForm.FormBorderStyle = "FixedDialog"
+    $authForm.MaximizeBox = $false
+    $authForm.MinimizeBox = $false
+
+    $authFont = New-Object System.Drawing.Font("Segoe UI", 9)
+    $authForm.Font = $authFont
+
+    $lblAuthMode = New-Object System.Windows.Forms.Label
+    $lblAuthMode.Text = "Mode"
+    $lblAuthMode.Location = New-Object System.Drawing.Point(20, 20)
+    $lblAuthMode.Size = New-Object System.Drawing.Size(80, 22)
+    $authForm.Controls.Add($lblAuthMode)
+
+    $cmbAuthMode = New-Object System.Windows.Forms.ComboBox
+    $cmbAuthMode.DropDownStyle = "DropDownList"
+    $cmbAuthMode.Items.AddRange(@("Interactive", "AppOnlySecret", "AppOnlyCertificate"))
+    $selectedMode = [string]$script:UiSettings.AuthMode
+    if ($cmbAuthMode.Items -notcontains $selectedMode) {
+        $selectedMode = "Interactive"
+    }
+    $cmbAuthMode.SelectedItem = $selectedMode
+    $cmbAuthMode.Location = New-Object System.Drawing.Point(105, 17)
+    $cmbAuthMode.Size = New-Object System.Drawing.Size(180, 24)
+    $authForm.Controls.Add($cmbAuthMode)
+
+    $lblTenantId = New-Object System.Windows.Forms.Label
+    $lblTenantId.Text = "Tenant ID"
+    $lblTenantId.Location = New-Object System.Drawing.Point(20, 58)
+    $lblTenantId.Size = New-Object System.Drawing.Size(80, 22)
+    $authForm.Controls.Add($lblTenantId)
+
+    $txtTenantId = New-Object System.Windows.Forms.TextBox
+    $txtTenantId.Text = [string]$script:UiSettings.TenantId
+    $txtTenantId.Location = New-Object System.Drawing.Point(105, 55)
+    $txtTenantId.Size = New-Object System.Drawing.Size(290, 24)
+    $authForm.Controls.Add($txtTenantId)
+
+    $lblClientId = New-Object System.Windows.Forms.Label
+    $lblClientId.Text = "Client ID"
+    $lblClientId.Location = New-Object System.Drawing.Point(410, 58)
+    $lblClientId.Size = New-Object System.Drawing.Size(70, 22)
+    $authForm.Controls.Add($lblClientId)
+
+    $txtClientId = New-Object System.Windows.Forms.TextBox
+    $txtClientId.Text = [string]$script:UiSettings.ClientId
+    $txtClientId.Location = New-Object System.Drawing.Point(485, 55)
+    $txtClientId.Size = New-Object System.Drawing.Size(220, 24)
+    $authForm.Controls.Add($txtClientId)
+
+    $lblClientSecret = New-Object System.Windows.Forms.Label
+    $lblClientSecret.Text = "Client Secret"
+    $lblClientSecret.Location = New-Object System.Drawing.Point(20, 96)
+    $lblClientSecret.Size = New-Object System.Drawing.Size(80, 22)
+    $authForm.Controls.Add($lblClientSecret)
+
+    $txtClientSecret = New-Object System.Windows.Forms.TextBox
+    $txtClientSecret.Text = [string]$script:UiSettings.ClientSecretPlainText
+    $txtClientSecret.Location = New-Object System.Drawing.Point(105, 93)
+    $txtClientSecret.Size = New-Object System.Drawing.Size(290, 24)
+    $txtClientSecret.UseSystemPasswordChar = $true
+    $authForm.Controls.Add($txtClientSecret)
+
+    $lblCertThumb = New-Object System.Windows.Forms.Label
+    $lblCertThumb.Text = "Cert Thumbprint"
+    $lblCertThumb.Location = New-Object System.Drawing.Point(20, 134)
+    $lblCertThumb.Size = New-Object System.Drawing.Size(90, 22)
+    $authForm.Controls.Add($lblCertThumb)
+
+    $txtCertThumb = New-Object System.Windows.Forms.TextBox
+    $txtCertThumb.Text = [string]$script:UiSettings.CertificateThumbprint
+    $txtCertThumb.Location = New-Object System.Drawing.Point(105, 131)
+    $txtCertThumb.Size = New-Object System.Drawing.Size(290, 24)
+    $authForm.Controls.Add($txtCertThumb)
+
+    $lblCertName = New-Object System.Windows.Forms.Label
+    $lblCertName.Text = "Cert Subject"
+    $lblCertName.Location = New-Object System.Drawing.Point(410, 134)
+    $lblCertName.Size = New-Object System.Drawing.Size(75, 22)
+    $authForm.Controls.Add($lblCertName)
+
+    $txtCertName = New-Object System.Windows.Forms.TextBox
+    $txtCertName.Text = [string]$script:UiSettings.CertificateName
+    $txtCertName.Location = New-Object System.Drawing.Point(485, 131)
+    $txtCertName.Size = New-Object System.Drawing.Size(220, 24)
+    $authForm.Controls.Add($txtCertName)
+
+    $btnSaveAuth = New-Object System.Windows.Forms.Button
+    $btnSaveAuth.Text = "Save"
+    $btnSaveAuth.Location = New-Object System.Drawing.Point(540, 188)
+    $btnSaveAuth.Size = New-Object System.Drawing.Size(80, 30)
+    $authForm.Controls.Add($btnSaveAuth)
+
+    $btnCancelAuth = New-Object System.Windows.Forms.Button
+    $btnCancelAuth.Text = "Cancel"
+    $btnCancelAuth.Location = New-Object System.Drawing.Point(625, 188)
+    $btnCancelAuth.Size = New-Object System.Drawing.Size(80, 30)
+    $authForm.Controls.Add($btnCancelAuth)
+
+    $updateAuthFieldState = {
+        $mode = [string]$cmbAuthMode.SelectedItem
+        $txtClientSecret.Enabled = ($mode -eq "AppOnlySecret")
+        $txtCertThumb.Enabled = ($mode -eq "AppOnlyCertificate")
+        $txtCertName.Enabled = ($mode -eq "AppOnlyCertificate")
+    }
+
+    $cmbAuthMode.Add_SelectedIndexChanged({ & $updateAuthFieldState })
+    & $updateAuthFieldState
+
+    $btnSaveAuth.Add_Click({
+        $script:UiSettings.AuthMode = [string]$cmbAuthMode.SelectedItem
+        $script:UiSettings.TenantId = $txtTenantId.Text.Trim()
+        $script:UiSettings.ClientId = $txtClientId.Text.Trim()
+        $script:UiSettings.ClientSecretPlainText = $txtClientSecret.Text
+        $script:UiSettings.CertificateThumbprint = $txtCertThumb.Text.Trim()
+        $script:UiSettings.CertificateName = $txtCertName.Text.Trim()
+
+        Save-UiSettings -Settings $script:UiSettings
+        $lblStatus.Text = Get-AuthenticationSummaryText
+
+        Add-OutputLine "Authentication settings saved."
+        $authForm.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $authForm.Close()
+    })
+
+    $btnCancelAuth.Add_Click({
+        $authForm.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        $authForm.Close()
+    })
+
+    [void]$authForm.ShowDialog($form)
 }
 
 function Show-AppError {
@@ -286,19 +775,12 @@ function Set-BusyState {
 
     $form.UseWaitCursor = $Busy
     $btnConnect.Enabled = -not $Busy
+    $btnAuthSettings.Enabled = -not $Busy
+    $btnSettings.Enabled = -not $Busy
     $btnRefresh.Enabled = -not $Busy
     $cmbDeviceAction.Enabled = -not $Busy
     $btnRunDeviceAction.Enabled = -not $Busy
-    $btnApplyLog.Enabled = -not $Busy
     [System.Windows.Forms.Application]::DoEvents()
-}
-
-function Update-AuthFieldState {
-    $mode = [string]$cmbAuthMode.SelectedItem
-
-    $txtClientSecret.Enabled = ($mode -eq "AppOnlySecret")
-    $txtCertThumb.Enabled = ($mode -eq "AppOnlyCertificate")
-    $txtCertName.Enabled = ($mode -eq "AppOnlyCertificate")
 }
 
 function Get-SelectedDevice {
@@ -513,59 +995,50 @@ function Invoke-DeviceAction {
     }
 }
 
-$cmbAuthMode.Add_SelectedIndexChanged({
-    Update-AuthFieldState
+$btnAuthSettings.Add_Click({
+    Show-AuthenticationDialog
 })
 
-$btnApplyLog.Add_Click({
-    try {
-        Set-IntuneAppConfiguration `
-            -LogEnabled $chkLogEnabled.Checked `
-            -LogPath $txtLogPath.Text `
-            -DefaultDeviceLimit ([int]$numLimit.Value)
-
-        Add-OutputLine "Logging configuration applied."
-    }
-    catch {
-        Show-AppError -Message "Failed to apply logging configuration." -Exception $_
-    }
+$btnSettings.Add_Click({
+    Show-SettingsDialog
 })
 
 $btnConnect.Add_Click({
     Set-BusyState -Busy $true
 
     try {
-        $mode = [string]$cmbAuthMode.SelectedItem
+        $mode = [string]$script:UiSettings.AuthMode
+        if ([string]::IsNullOrWhiteSpace($mode)) {
+            $mode = "Interactive"
+        }
+
         $connectParams = @{
             AuthMode = $mode
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($txtTenantId.Text)) {
-            $connectParams.TenantId = $txtTenantId.Text.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($script:UiSettings.TenantId)) {
+            $connectParams.TenantId = [string]$script:UiSettings.TenantId
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($txtClientId.Text)) {
-            $connectParams.ClientId = $txtClientId.Text.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($script:UiSettings.ClientId)) {
+            $connectParams.ClientId = [string]$script:UiSettings.ClientId
         }
 
         if ($mode -eq "AppOnlySecret") {
-            $connectParams.ClientSecret = ConvertTo-SecureString -String $txtClientSecret.Text -AsPlainText -Force
+            $connectParams.ClientSecret = ConvertTo-SecureString -String $script:UiSettings.ClientSecretPlainText -AsPlainText -Force
         }
 
         if ($mode -eq "AppOnlyCertificate") {
-            if (-not [string]::IsNullOrWhiteSpace($txtCertThumb.Text)) {
-                $connectParams.CertificateThumbprint = $txtCertThumb.Text.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($script:UiSettings.CertificateThumbprint)) {
+                $connectParams.CertificateThumbprint = [string]$script:UiSettings.CertificateThumbprint
             }
 
-            if (-not [string]::IsNullOrWhiteSpace($txtCertName.Text)) {
-                $connectParams.CertificateName = $txtCertName.Text.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($script:UiSettings.CertificateName)) {
+                $connectParams.CertificateName = [string]$script:UiSettings.CertificateName
             }
         }
 
         $context = Connect-IntuneGraph @connectParams
-        if ($mode -eq "AppOnlySecret") {
-            $txtClientSecret.Clear()
-        }
 
         $lblStatus.Text = "Connected: Tenant=$($context.TenantId); AuthType=$($context.AuthType)"
         Add-OutputLine "Connected to Microsoft Graph."
@@ -584,11 +1057,11 @@ $btnRefresh.Add_Click({
 
     try {
         Set-IntuneAppConfiguration `
-            -LogEnabled $chkLogEnabled.Checked `
-            -LogPath $txtLogPath.Text `
-            -DefaultDeviceLimit ([int]$numLimit.Value)
+            -LogEnabled $script:UiSettings.LogEnabled `
+            -LogPath $script:UiSettings.LogPath `
+            -DefaultDeviceLimit $script:UiSettings.DeviceLimit
 
-        $devices = @(Get-IntuneManagedDevices -SearchText $txtSearch.Text -Top ([int]$numLimit.Value))
+        $devices = @(Get-IntuneManagedDevices -SearchText $txtSearch.Text -Top $script:UiSettings.DeviceLimit)
         Set-DeviceGridData -Devices $devices
         Add-OutputLine "Loaded $($devices.Count) managed device(s)."
     }
@@ -611,7 +1084,16 @@ $txtSearch.Add_KeyDown({
     }
 })
 
-Update-AuthFieldState
+$form.Add_Shown({
+    try {
+        [void](Check-ForUpdates -ShowWhenCurrent $false)
+    }
+    catch {
+        Write-IntuneLog -Message "Automatic update check failed." -Level "WARN" -Exception $_
+    }
+})
+
+$lblStatus.Text = Get-AuthenticationSummaryText
 Add-OutputLine "Ready. Install Microsoft.Graph if the SDK is not already available."
 Write-IntuneLog -Message "Intune Management Console started."
 

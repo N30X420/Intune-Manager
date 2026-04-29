@@ -54,7 +54,7 @@ function Write-IntuneLog {
             $exceptionText = " Exception=$($Exception.Exception.Message)"
         }
 
-        $line = "{0} [{1}] {2}{3}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Level, $Message, $exceptionText
+        $line = "{0} [{1}] {2}{3}" -f (Get-Date -Format "dd-MM-yyyy HH:mm:ss"), $Level, $Message, $exceptionText
         Add-Content -Path $logPath -Value $line -Encoding UTF8 -ErrorAction Stop
     }
     catch {
