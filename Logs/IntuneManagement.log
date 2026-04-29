@@ -1,0 +1,66 @@
+﻿
+2026-04-29 14:02:59 [WARN] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:02:59 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:03:01 [INFO] Successfully retrieved 2 BitLocker key(s) for device 'DESKTOP-U9T4NH2'.
+2026-04-29 14:04:16 [INFO] Resetting BitLocker recovery keys for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'.
+2026-04-29 14:04:16 [INFO] Successfully reset BitLocker keys for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'.
+2026-04-29 14:04:59 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:04:59 [INFO] Intune Management Console started.
+2026-04-29 14:05:02 [INFO] Added module path 'C:\Users\Vincent\Documents\PowerShell\Modules' for Microsoft Graph discovery.
+2026-04-29 14:05:02 [INFO] Loaded module 'Microsoft.Graph.Authentication'.
+2026-04-29 14:05:04 [INFO] Loaded module 'Microsoft.Graph.DeviceManagement'.
+2026-04-29 14:05:04 [INFO] Connecting to Microsoft Graph using auth mode 'Interactive'.
+2026-04-29 14:05:05 [INFO] Connected to tenant '33cf9661-bb7c-4ef7-b9b7-bf22fddfd072' using 'Delegated' authentication.
+2026-04-29 14:05:08 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:05:08 [INFO] Retrieving Intune managed devices. SearchText=''; Top=200.
+2026-04-29 14:05:08 [INFO] Retrieved 11 Intune managed device(s).
+2026-04-29 14:05:16 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:05:16 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:05:19 [ERROR] Failed to retrieve BitLocker keys for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:05:19 [ERROR] Failed to run device action 'Get BitLocker keys'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:05:30 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:05:30 [INFO] Retrieving local admin password for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:05:33 [INFO] Successfully retrieved local admin password for device 'DESKTOP-U9T4NH2'.
+2026-04-29 14:06:07 [INFO] Resetting local admin password for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'.
+2026-04-29 14:06:07 [INFO] Successfully reset local admin password for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'.
+2026-04-29 14:06:14 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:06:14 [INFO] Retrieving Intune managed devices. SearchText='DESKTOP'; Top=200.
+2026-04-29 14:06:15 [INFO] Retrieved 1 Intune managed device(s).
+2026-04-29 14:06:33 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:06:33 [INFO] Retrieving local admin password for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:06:34 [INFO] Successfully retrieved local admin password for device 'DESKTOP-U9T4NH2'.
+2026-04-29 14:07:08 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:07:08 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:07:10 [ERROR] Failed to retrieve BitLocker keys for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:07:10 [ERROR] Failed to run device action 'Get BitLocker keys'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:11:37 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:11:37 [INFO] Intune Management Console started.
+2026-04-29 14:11:40 [INFO] Added module path 'C:\Users\Vincent\Documents\PowerShell\Modules' for Microsoft Graph discovery.
+2026-04-29 14:11:40 [INFO] Loaded module 'Microsoft.Graph.Authentication'.
+2026-04-29 14:11:42 [INFO] Loaded module 'Microsoft.Graph.DeviceManagement'.
+2026-04-29 14:11:42 [INFO] Connecting to Microsoft Graph using auth mode 'Interactive'.
+2026-04-29 14:11:43 [INFO] Connected to tenant '33cf9661-bb7c-4ef7-b9b7-bf22fddfd072' using 'Delegated' authentication.
+2026-04-29 14:11:45 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:11:45 [INFO] Retrieving Intune managed devices. SearchText=''; Top=200.
+2026-04-29 14:11:46 [INFO] Retrieved 11 Intune managed device(s).
+2026-04-29 14:11:55 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:11:55 [INFO] Retrieving local admin password for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:11:57 [INFO] Successfully retrieved local admin password for device 'DESKTOP-U9T4NH2'.
+2026-04-29 14:12:03 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:12:03 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using directory device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:12:06 [ERROR] Failed to retrieve BitLocker keys for device 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:12:06 [ERROR] Failed to run device action 'Get BitLocker keys'. Exception=Response status code does not indicate success: BadRequest (Bad Request).
+2026-04-29 14:14:59 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:14:59 [INFO] Intune Management Console started.
+2026-04-29 14:15:01 [INFO] Added module path 'C:\Users\Vincent\Documents\PowerShell\Modules' for Microsoft Graph discovery.
+2026-04-29 14:15:01 [INFO] Loaded module 'Microsoft.Graph.Authentication'.
+2026-04-29 14:15:03 [INFO] Loaded module 'Microsoft.Graph.DeviceManagement'.
+2026-04-29 14:15:03 [INFO] Connecting to Microsoft Graph using auth mode 'Interactive'.
+2026-04-29 14:15:04 [INFO] Connected to tenant '33cf9661-bb7c-4ef7-b9b7-bf22fddfd072' using 'Delegated' authentication.
+2026-04-29 14:15:05 [INFO] Configuration updated. LogEnabled=True; LogPath=C:\Users\Vincent\Documents\Github\Intune-Manager\Logs\IntuneManagement.log; DefaultDeviceLimit=200.
+2026-04-29 14:15:05 [INFO] Retrieving Intune managed devices. SearchText=''; Top=200.
+2026-04-29 14:15:06 [INFO] Retrieved 11 Intune managed device(s).
+2026-04-29 14:15:13 [INFO] Unable to resolve directory device mapping for 'b4773a97-99b7-49cc-991f-ce0774ed32de'. Using managed device AzureADDeviceId directly.
+2026-04-29 14:15:13 [INFO] Retrieving BitLocker recovery keys for device 'DESKTOP-U9T4NH2' using Entra device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:15:16 [INFO] Found 2 BitLocker key summary record(s) using device ID 'c381500f-3a22-4827-8ede-0530c7f980c3'.
+2026-04-29 14:15:17 [INFO] Successfully retrieved 2 BitLocker key(s) for device 'DESKTOP-U9T4NH2'.
